@@ -2,6 +2,18 @@
 
 基于**声明式站点策略**重写的 Chrome MV3 扩展。设计文档见 [`dev/`](./dev/)，旧版参考实现见 [`reference/`](./reference/)。
 
+## 致谢与来源声明
+
+本项目并非从零原创。其最初的思路与实现源自开源项目
+**[Ginkgoooo/newapi-auto-checkin](https://github.com/Ginkgoooo/newapi-auto-checkin)**。
+
+在到达本仓库之前，代码已经过若干位作者辗转修改、传递了不知多少个版本；本仓库 [`reference/`](./reference/)
+下保存的即是我拿到的那份「原生 JS 版」，本项目（v2）是在其基础上用 TypeScript + WXT 重写、
+并扩展了声明式站点策略、多 OAuth 提供方、元素点选、运行日志等能力。
+
+在此向上游原作者 [@Ginkgoooo](https://github.com/Ginkgoooo) 以及沿途所有贡献者致谢。
+如原始项目采用特定开源许可（如 MIT），本项目在其基础上的修改沿用相同条款。
+
 ## 技术栈
 
 - **TypeScript**（strict）+ **WXT**（基于 Vite 的浏览器扩展框架）

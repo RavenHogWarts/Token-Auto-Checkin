@@ -1,0 +1,35 @@
+{
+  "name": "token-auto-checkin",
+  "displayName": "公益站自动签到助手",
+  "version": "1.0.5",
+  "description": "支持 NewAPI / Sub2API / ZenAPI 及自定义站点的公益站自动签到工具（声明式站点策略）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "compile": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/chrome": "^0.0.270",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.5",
+    "wxt": "^0.20.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

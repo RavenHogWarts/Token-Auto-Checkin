@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# wxt
+.wxt/
+.output/
+web-ext.config.ts
+
+# build
+*.zip
+
+# editor / os
+.DS_Store
+*.log
+
+# docs
+reference/
+dev

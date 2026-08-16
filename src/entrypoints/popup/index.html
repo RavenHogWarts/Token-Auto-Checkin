@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公益站自动签到助手</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>公益站自动签到</h1>
+      <p>支持 NewAPI、Sub2API 等多类型站点 | 每天 <span id="autoSignTimeLabel">09:00</span></p>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tabSites" data-tab="sites" role="tab">站点</button>
+      <button class="tab-btn" id="tabLogs" data-tab="logs" role="tab">运行日志</button>
+    </div>
+
+    <div class="tab-panel" id="panel-sites" role="tabpanel">
+    <div class="card">
+      <div class="status">
+        <div class="status-item">
+          <div class="status-label">站点</div>
+          <div class="status-value" id="totalSites">-</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">成功</div>
+          <div class="status-value success-count" id="successCount">-</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">已签</div>
+          <div class="status-value already-count" id="alreadyCount">-</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">失败</div>
+          <div class="status-value failed-count" id="failedCount">-</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="checkInBtn" disabled title="请先添加并启用至少一个站点">
+        <span class="checkin-button-content">
+          <span class="checkin-button-spinner" id="btnSpinner" aria-hidden="true"></span>
+          <span id="btnText">立即签到</span>
+        </span>
+      </button>
+
+      <div class="sites-list" id="sitesList"></div>
+
+      <div class="site-add-row">
+        <button class="btn btn-sm btn-add" id="showAddBtn">+ 添加站点</button>
+        <label class="human-focus-toggle" title="遇到人机验证时将验证页面切到前台">
+          <input type="checkbox" id="humanFocusToggle" />
+          <span class="human-focus-toggle-track" aria-hidden="true"></span>
+          <span>人机窗口前置</span>
+        </label>
+      </div>
+
+      <div class="utility-row">
+        <div class="config-actions">
+          <button class="btn btn-sm btn-export" id="exportBtn">导出配置</button>
+          <button class="btn btn-sm btn-import" id="importBtn">导入配置</button>
+        </div>
+        <div class="settings-row">
+          <label for="autoSignTime">每日签到</label>
+          <input type="time" id="autoSignTime" value="09:00" />
+          <button class="btn btn-sm" id="saveTimeBtn">保存</button>
+        </div>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display: none;" />
+      <div class="settings-status" id="timeStatus"></div>
+
+      <div class="last-check" id="lastCheck">暂无签到记录</div>
+    </div>
+    </div>
+
+    <div class="tab-panel" id="panel-logs" role="tabpanel" hidden>
+      <div class="card">
+        <div class="logs-toolbar">
+          <span class="logs-count" id="logCount">暂无日志</span>
+          <button class="btn btn-sm" id="clearLogsBtn">清空</button>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
+
+    <div class="footer">v1.0.5</div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

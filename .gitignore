@@ -12,7 +12,3 @@ web-ext.config.ts
 # editor / os
 .DS_Store
 *.log
-
-# docs
-reference/
-dev

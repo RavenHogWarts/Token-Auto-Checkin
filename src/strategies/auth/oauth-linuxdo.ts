@@ -125,17 +125,25 @@ async function siteLoginPageOAuth(
   return { ok: false, tabId };
 }
 
-async function processNewApiCallback(tabId: number, providerId: string): Promise<void> {
+async function processNewApiCallback(
+  tabId: number,
+  providerId: string,
+  log: RunContext['logger'],
+): Promise<void> {
   const tab = await getTab(tabId);
   let search = '';
   try {
     const parsed = new URL(tab?.url || '');
-    if (!parsed.searchParams.get('code')) return;
+    if (!parsed.searchParams.get('code')) {
+      log.log(`回调页无 code（当前 ${parsed.pathname}），依赖前端自行换取`);
+      return;
+    }
     // 转发完整回调 query（code + state）：GitHub 换取接口需校验 state，仅传 code 会失败
     search = parsed.search;
   } catch {
     return;
   }
+  log.log(`兜底换取登录态：/api/oauth/${providerId}${search.slice(0, 60)}…`);
   await runInTab(tabId, fetchJsonInTab, [`/api/oauth/${providerId}${search}`]);
   await sleep(1000);
 }
@@ -149,9 +157,10 @@ async function newApiOAuth(
   const postLoginUrl = getNewApiPostLoginUrl(domain, visitUrl);
   const spec = getProviderSpec(profile.auth.oauthProvider);
   const log = ctx.logger;
+  log.log(`${profile.name} OAuth 开始：提供方=${spec.label}(${spec.id})`);
 
   if (!(await hasProviderCookies(spec))) {
-    log.warn(`${spec.label} 未登录，无法 OAuth`);
+    log.warn(`${spec.label} 未登录（无 ${spec.cookieDomain} cookie），无法 OAuth`);
     return null;
   }
 
@@ -175,21 +184,26 @@ async function newApiOAuth(
       const stateRes = await runInTab(tabId, fetchJsonInTab, [spec.stateUrl]);
       const stateData = stateRes?.data as { success?: boolean; data?: string };
       if (!stateData?.success || !stateData?.data) {
-        log.warn('获取 OAuth state 失败');
+        log.warn(`获取 OAuth state 失败（${spec.stateUrl}）`);
         return null;
       }
-      await browser.tabs.update(tabId, {
-        url: spec.buildAuthorizeUrl(clientId, stateData.data),
-      });
+      const authorizeUrl = spec.buildAuthorizeUrl(clientId, stateData.data);
+      log.log(`${profile.name} 直连授权：跳转 ${new URL(authorizeUrl).host}`);
+      await browser.tabs.update(tabId, { url: authorizeUrl });
       await ensureTabPageReady(tabId, postLoginUrl, 20000).catch(() => {});
       await sleep(1000);
 
       const cur = await getTab(tabId);
+      log.log(`${profile.name} 授权后落地 URL：${cur?.url || '未知'}`);
       if (cur?.url && urlHitsAuthorizeHost(cur.url, spec)) {
         if (await probeTab(tabId)) return { securityCheck: true, tabId };
-        if (!(await clickAuthorizeAndWaitRedirect(tabId, domain, postLoginUrl))) return null;
+        log.log(`${profile.name} 仍在授权页，尝试点击「授权」`);
+        if (!(await clickAuthorizeAndWaitRedirect(tabId, domain, postLoginUrl))) {
+          log.warn(`${profile.name} 点击授权后未回跳`);
+          return null;
+        }
       }
-      return finalizeNewApiLogin(domain, postLoginUrl, tabId, spec.id);
+      return finalizeNewApiLogin(domain, postLoginUrl, tabId, spec.id, log);
     }
     log.warn(`无 ${spec.clientIdStatusKey}，改用站点登录页入口`);
   }
@@ -197,7 +211,7 @@ async function newApiOAuth(
   const loginResult = await siteLoginPageOAuth(tabId, domain, postLoginUrl, spec);
   if (loginResult.securityCheck) return { securityCheck: true, tabId };
   if (!loginResult.ok) return null;
-  return finalizeNewApiLogin(domain, postLoginUrl, tabId, spec.id);
+  return finalizeNewApiLogin(domain, postLoginUrl, tabId, spec.id, log);
 }
 
 async function finalizeNewApiLogin(
@@ -205,13 +219,19 @@ async function finalizeNewApiLogin(
   postLoginUrl: string,
   tabId: number,
   providerId: string,
+  log: RunContext['logger'],
 ): Promise<AuthContext | null> {
-  await processNewApiCallback(tabId, providerId);
+  await processNewApiCallback(tabId, providerId, log);
 
   let ok = false;
   for (let i = 0; i < 5; i++) {
     await sleep(1500);
     const session = await runInTab(tabId, inspectBrowserSession, []);
+    if (i === 0 || session?.userAuthenticated) {
+      log.log(
+        `登录态轮询[${i + 1}/5]：hasUser=${session?.hasUser} 已认证=${session?.userAuthenticated} self=${session?.selfStatus}`,
+      );
+    }
     if (session?.success && hasUserSession(session)) {
       ok = true;
       break;

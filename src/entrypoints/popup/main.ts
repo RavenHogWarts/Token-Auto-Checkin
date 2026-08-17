@@ -36,6 +36,7 @@ interface AutoSignTimeResponse {
 
 const PRESET_LABELS: Record<SitePreset, string> = {
   newapi: 'NewAPI',
+  'newapi-profile': 'NewAPI 个人资料',
   sub2api: 'Sub2API',
   zenapi: 'ZenAPI',
   custom: '自定义',

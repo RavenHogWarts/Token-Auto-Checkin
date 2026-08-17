@@ -13,6 +13,7 @@ export type AuthStrategy =
   | 'session-reuse' // 探测登录态，有效则复用，无效才升级
   | 'oauth-linuxdo' // 走 linux.do OAuth 换取 token/session
   | 'token-storage' // 从页面 localStorage/sessionStorage 读取 token
+  | 'bearer-sniff' // 嗅探页面自身请求的 Authorization: Bearer 头（token 仅在内存，如 New API rc.23）
   | 'force-relogin'; // 每次签到前强制重新登录（场景 B）
 
 /** 签到策略：如何触发签到 */
@@ -23,7 +24,7 @@ export type CheckinStrategy =
   | 'manual-assist'; // 前置页面交用户手动完成（场景 C 人工兜底）
 
 /** 站点预设：仅用于填充默认策略与接口路径 */
-export type SitePreset = 'newapi' | 'sub2api' | 'zenapi' | 'custom';
+export type SitePreset = 'newapi' | 'newapi-profile' | 'sub2api' | 'zenapi' | 'custom';
 
 /** OAuth 登录提供方（重新登录时点击哪个第三方登录入口） */
 export type OAuthProvider = 'linuxdo' | 'github';

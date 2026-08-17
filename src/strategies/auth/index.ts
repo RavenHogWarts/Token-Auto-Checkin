@@ -2,6 +2,7 @@
 import type { AuthContext, AuthStrategyImpl, RunContext } from '../../core/context';
 import type { AuthStrategy, SiteProfile } from '../../domain/site-profile';
 import { cacheHeaders, clearCachedHeaders, getCachedHeaders } from '../../services/storage';
+import { bearerSniffAuth } from './bearer-sniff';
 import { cookieAuth } from './cookie';
 import { forceReloginAuth } from './force-relogin';
 import { sessionReuseAuth } from './session-reuse';
@@ -16,7 +17,7 @@ export function registerAuthStrategy(impl: AuthStrategyImpl): void {
   registry.set(impl.name, impl);
 }
 
-[cookieAuth, sessionReuseAuth, tokenStorageAuth, oauthAuth, forceReloginAuth].forEach(
+[cookieAuth, sessionReuseAuth, tokenStorageAuth, oauthAuth, forceReloginAuth, bearerSniffAuth].forEach(
   registerAuthStrategy,
 );
 
@@ -36,7 +37,9 @@ export async function resolveAuth(
   const strategy = profile.auth.strategy;
   const needsTabExecution = profile.preset === 'zenapi';
 
-  if (strategy !== 'force-relogin' && !options.forceRefresh) {
+  // force-relogin 每次强制重登；bearer-sniff 的 token 短时有效（约 15 分钟）——两者都不吃缓存
+  const skipCache = strategy === 'force-relogin' || strategy === 'bearer-sniff';
+  if (!skipCache && !options.forceRefresh) {
     const cached = await getCachedHeaders(profile.id);
     if (cached) {
       ctx.logger.log(`${profile.name} 使用缓存认证头`);
@@ -45,7 +48,7 @@ export async function resolveAuth(
   }
 
   const result = await getAuthStrategy(strategy).resolve(profile, ctx);
-  if (result?.headers && !result.securityCheck && strategy !== 'cookie') {
+  if (result?.headers && !result.securityCheck && strategy !== 'cookie' && !skipCache) {
     await cacheHeaders(profile.id, result.headers);
   }
   return result;

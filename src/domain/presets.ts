@@ -35,6 +35,16 @@ export const PRESET_DEFAULTS: Record<SitePreset, PresetDefaults> = {
     apiMethod: 'POST',
     apiQueryPath: '/api/user/checkin',
   },
+  'newapi-profile': {
+    // New API rc.23 个人资料签到：token 仅在内存 → bearer-sniff 嗅探 Authorization；
+    // 签到走原生 API（在标签页内执行以带上 Cloudflare cf_clearance），入口在 /profile。
+    auth: 'bearer-sniff',
+    checkin: 'api',
+    pagePath: '/profile',
+    apiExecPath: '/api/user/checkin',
+    apiMethod: 'POST',
+    apiQueryPath: '/api/user/checkin',
+  },
   sub2api: {
     auth: 'token-storage',
     checkin: 'page-click',

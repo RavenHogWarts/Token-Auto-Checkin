@@ -19,6 +19,7 @@ const AUTH_OPTIONS: { value: AuthStrategy; label: string }[] = [
   { value: 'cookie', label: 'cookie · 直接用已有 cookie' },
   { value: 'session-reuse', label: 'session-reuse · 复用登录态，失效才登录' },
   { value: 'token-storage', label: 'token-storage · 读页面 token' },
+  { value: 'bearer-sniff', label: 'bearer-sniff · 嗅探页面 Bearer 头（token 仅在内存）' },
   { value: 'oauth-linuxdo', label: 'oauth-linuxdo · 走 linux.do 登录' },
   { value: 'force-relogin', label: 'force-relogin · 每次先登出再登录' },
 ];
@@ -32,6 +33,7 @@ const CHECKIN_OPTIONS: { value: CheckinStrategy; label: string }[] = [
 
 const PRESET_OPTIONS: { value: SitePreset; label: string }[] = [
   { value: 'newapi', label: 'NewAPI' },
+  { value: 'newapi-profile', label: 'NewAPI 个人资料签到' },
   { value: 'sub2api', label: 'Sub2API' },
   { value: 'zenapi', label: 'ZenAPI' },
   { value: 'custom', label: '自定义' },

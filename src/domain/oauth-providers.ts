@@ -4,6 +4,7 @@
  * 差异集中在：点哪个登录按钮、授权页在哪个域名、需要哪个提供方的登录 cookie。
  */
 import type { OAuthProvider } from './site-profile';
+import { buildNewApiGithubOAuthUrl, buildNewApiLinuxDoOAuthUrl } from './oauth-urls';
 
 export interface OAuthProviderSpec {
   id: OAuthProvider;
@@ -14,6 +15,12 @@ export interface OAuthProviderSpec {
   authorizeHosts: string[];
   /** 该提供方的登录态 cookie 域名（用于预检是否已登录） */
   cookieDomain: string;
+  /** /api/status 中该提供方 client_id 的字段名（NewAPI 直连快捷路径用；缺则回退登录页点击） */
+  clientIdStatusKey?: string;
+  /** 获取 OAuth state 的接口路径（含 query）。GitHub 需 ?mode=login，linux.do 用裸路径 */
+  stateUrl?: string;
+  /** 由 client_id + state 构建第三方授权 URL（NewAPI 直连快捷路径用） */
+  buildAuthorizeUrl?: (clientId: string, state: string) => string;
 }
 
 export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderSpec> = {
@@ -23,6 +30,9 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderSpec> = {
     loginButtonPatternSource: 'linux\\s*\\.?\\s*do|linuxdo|使用.*linux|linux.*登录|登录.*linux',
     authorizeHosts: ['connect.linux.do'],
     cookieDomain: 'linux.do',
+    clientIdStatusKey: 'linuxdo_client_id',
+    stateUrl: '/api/oauth/state',
+    buildAuthorizeUrl: buildNewApiLinuxDoOAuthUrl,
   },
   github: {
     id: 'github',
@@ -30,6 +40,9 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderSpec> = {
     loginButtonPatternSource: 'github|use github|sign in with github|使用.*github|github.*登录|登录.*github',
     authorizeHosts: ['github.com'],
     cookieDomain: 'github.com',
+    clientIdStatusKey: 'github_client_id',
+    stateUrl: '/api/oauth/state?mode=login',
+    buildAuthorizeUrl: buildNewApiGithubOAuthUrl,
   },
 };
 

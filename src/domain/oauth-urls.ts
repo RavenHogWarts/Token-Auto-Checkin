@@ -14,6 +14,16 @@ export function buildNewApiLinuxDoOAuthUrl(clientId: string, state: string): str
   return `https://connect.linux.do/oauth2/authorize?${params.toString()}`;
 }
 
+/**
+ * GitHub OAuth 授权 URL。redirect_uri 由 GitHub App 注册决定（NewAPI 不传），
+ * 回调固定回到站点 /oauth/github。scope 仅在「首次授权」时决定授权范围；
+ * 对已授权账号的重新登录，GitHub 会直接带 code 回跳，scope 差异无影响。
+ */
+export function buildNewApiGithubOAuthUrl(clientId: string, state: string): string {
+  const params = new URLSearchParams({ client_id: clientId, state, scope: 'user:email' });
+  return `https://github.com/login/oauth/authorize?${params.toString()}`;
+}
+
 export function isNewApiOAuthCallbackUrl(url: string): boolean {
   try {
     return new URL(url || '').searchParams.has('code');

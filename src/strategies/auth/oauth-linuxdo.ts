@@ -9,7 +9,6 @@ import { closeTabUnlessInSession } from '../../core/tab-session';
 import { getLoginAgreementProbeConfig } from '../../domain/login-agreement';
 import { getProviderSpec, type OAuthProviderSpec } from '../../domain/oauth-providers';
 import {
-  buildNewApiLinuxDoOAuthUrl,
   buildSub2ApiLinuxDoOAuthStartUrl,
   buildZenApiLoginUrl,
   extractZenApiLinuxDoToken,
@@ -128,14 +127,16 @@ async function siteLoginPageOAuth(
 
 async function processNewApiCallback(tabId: number, providerId: string): Promise<void> {
   const tab = await getTab(tabId);
-  let code: string | null = null;
+  let search = '';
   try {
-    code = new URL(tab?.url || '').searchParams.get('code');
+    const parsed = new URL(tab?.url || '');
+    if (!parsed.searchParams.get('code')) return;
+    // 转发完整回调 query（code + state）：GitHub 换取接口需校验 state，仅传 code 会失败
+    search = parsed.search;
   } catch {
     return;
   }
-  if (!code) return;
-  await runInTab(tabId, fetchJsonInTab, [`/api/oauth/${providerId}?code=${code}`]);
+  await runInTab(tabId, fetchJsonInTab, [`/api/oauth/${providerId}${search}`]);
   await sleep(1000);
 }
 
@@ -157,25 +158,28 @@ async function newApiOAuth(
   const tab = await ctx.tabSession.open(`https://${domain}/`);
   const tabId = tab.id!;
 
-  // linux.do 有直连 client_id 快捷路径；其它提供方走站点登录页入口
-  if (spec.id === 'linuxdo') {
+  // 直连快捷路径（NewAPI）：从 /api/status 取 client_id → fetch state → 跳第三方授权页。
+  // linux.do 与 GitHub 共用此路径，差异（state 路径、授权 URL）由 provider spec 提供；
+  // 无 client_id 或未配置 builder 时回退到「站点登录页点击」通用入口。
+  if (spec.clientIdStatusKey && spec.stateUrl && spec.buildAuthorizeUrl) {
     const statusRes = await runInTab(tabId, fetchJsonInTab, ['/api/status']);
     const statusData = statusRes?.data as { data?: Record<string, unknown> } & Record<
       string,
       unknown
     >;
     const clientId =
-      (statusData?.data?.linuxdo_client_id as string) || (statusData?.linuxdo_client_id as string);
+      (statusData?.data?.[spec.clientIdStatusKey] as string) ||
+      (statusData?.[spec.clientIdStatusKey] as string);
 
     if (clientId) {
-      const stateRes = await runInTab(tabId, fetchJsonInTab, ['/api/oauth/state']);
+      const stateRes = await runInTab(tabId, fetchJsonInTab, [spec.stateUrl]);
       const stateData = stateRes?.data as { success?: boolean; data?: string };
       if (!stateData?.success || !stateData?.data) {
         log.warn('获取 OAuth state 失败');
         return null;
       }
       await browser.tabs.update(tabId, {
-        url: buildNewApiLinuxDoOAuthUrl(clientId, stateData.data),
+        url: spec.buildAuthorizeUrl(clientId, stateData.data),
       });
       await ensureTabPageReady(tabId, postLoginUrl, 20000).catch(() => {});
       await sleep(1000);
@@ -187,7 +191,7 @@ async function newApiOAuth(
       }
       return finalizeNewApiLogin(domain, postLoginUrl, tabId, spec.id);
     }
-    log.warn('无 linuxdo_client_id，改用站点登录页入口');
+    log.warn(`无 ${spec.clientIdStatusKey}，改用站点登录页入口`);
   }
 
   const loginResult = await siteLoginPageOAuth(tabId, domain, postLoginUrl, spec);

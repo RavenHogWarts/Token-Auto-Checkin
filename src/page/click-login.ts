@@ -45,6 +45,48 @@ export function clickSiteOAuthLogin(config: ClickLoginConfig): ClickLoginResult 
     );
   }
 
+  /**
+   * 关闭会遮挡登录入口的「公告 / 通知」类弹窗（Semi / AntD），避免点击被遮罩拦截。
+   * 仅针对公告/通知：跳过人机验证弹窗、以及含登录/授权文案的弹窗（不误关登录框）。
+   */
+  function dismissBlockingNoticeModals(): number {
+    const NOTICE = /系统公告|公告|通知|announcement|notice/i;
+    const SECURITY =
+      /captcha|turnstile|人机验证|安全验证|验证码|hCaptcha|reCAPTCHA|Cloudflare|请完成验证/i;
+    const loginPattern = new RegExp(config.loginPatternSource, 'i');
+    const modals = Array.from(
+      document.querySelectorAll(
+        '.semi-modal-content, .ant-modal, [role="dialog"][aria-modal="true"]',
+      ),
+    ).filter((m) => isVisible(m));
+    let closed = 0;
+    for (const modal of modals) {
+      const text = String(modal.textContent || '').replace(/\s+/g, ' ').trim();
+      if (SECURITY.test(text) || loginPattern.test(text)) continue;
+      const footerButtons = Array.from(modal.querySelectorAll('button'));
+      const hasNoticeFooter = footerButtons.some((b) =>
+        /^(关闭公告|今日关闭|关闭通知)$/.test(String(b.textContent || '').trim()),
+      );
+      if (!NOTICE.test(text) && !hasNoticeFooter) continue;
+      const closeBtn =
+        modal.querySelector(
+          '.semi-modal-close, .ant-modal-close, [aria-label="close" i], [aria-label="关闭"]',
+        ) ||
+        footerButtons.find((b) =>
+          /^(关闭公告|今日关闭|关闭通知|关闭|Close)$/i.test(String(b.textContent || '').trim()),
+        );
+      if (closeBtn) {
+        try {
+          (closeBtn as HTMLElement).click();
+          closed++;
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    return closed;
+  }
+
   function collectText(el: Element): string {
     const attrs = Array.from(el.attributes || []).map((a) => `${a.name}=${a.value}`);
     const childAttrs = Array.from(el.querySelectorAll('*')).flatMap((child) =>
@@ -151,6 +193,8 @@ export function clickSiteOAuthLogin(config: ClickLoginConfig): ClickLoginResult 
     return selected;
   }
 
+  // 先关掉遮挡登录入口的公告/通知弹窗，再勾选协议并查找登录按钮
+  dismissBlockingNoticeModals();
   const agreementSelected = selectAgreementCheckboxes(config.agreement);
   const candidates = Array.from(document.querySelectorAll(selectors.join(',')));
   for (const el of candidates) {

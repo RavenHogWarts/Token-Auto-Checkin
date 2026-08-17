@@ -211,7 +211,7 @@ export async function runPageCheckin(
       return false;
     if (/linux\s*\.?\s*do|oauth|authorize|授权|允许|登录|login|verify|验证/i.test(normalized))
       return false;
-    return /^(×|x|X|关闭|取消|我知道了|知道了|好的|确定|OK|Ok|ok|Close|Dismiss|Got it)$/i.test(
+    return /^(×|x|X|关闭|关闭公告|关闭通知|今日关闭|知道了|我知道了|好的|确定|取消|OK|Ok|ok|Close|Dismiss|Got it)$/i.test(
       normalized,
     );
   }
@@ -226,6 +226,29 @@ export async function runPageCheckin(
       /* ignore */
     }
     await wait(100);
+
+    // 1) 显式点常见 UI 库弹窗的关闭 X（Semi / AntD 等）：文案抽取不可靠时更稳，
+    //    如 agentrouter「系统公告」弹窗的 button.semi-modal-close[aria-label="close"]。
+    const explicitCloseSelectors = [
+      '.semi-modal-close',
+      '.ant-modal-close',
+      '[role="dialog"] [aria-label="close" i]',
+      '[role="dialog"] [aria-label="关闭"]',
+    ];
+    const explicitClose = Array.from(document.querySelectorAll(explicitCloseSelectors.join(', ')))
+      .filter((el) => isVisible(el))
+      .filter((el) => !el.closest('.cf-turnstile, .g-recaptcha, .h-captcha, [data-sitekey]'))
+      .slice(0, 3);
+    for (const el of explicitClose) {
+      try {
+        (el as HTMLElement).click();
+        await wait(150);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // 2) 文案匹配兜底（× / 关闭 / 关闭公告 / 今日关闭 / Close / Dismiss …）
     const selector = [
       'button',
       '[role="button"]',

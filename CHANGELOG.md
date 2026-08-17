@@ -8,6 +8,31 @@
 
 ---
 
+## v1.0.6
+
+**彻底登出重登 · GitHub 直连登录 · NewAPI 个人资料签到 · 自动关公告弹窗**
+
+- **force-relogin 重写为「彻底登出」**：新增 [site-logout.ts](src/page/site-logout.ts) `performSiteLogout`，
+  在站点标签页内依次执行「官方登出接口（`/api/user/logout`）+ 清 localStorage/sessionStorage 登录态
+  （`user`/`token` 等）+ 清站点 cookie」，再走 OAuth 拿全新 session。修复此前**只删 cookie、前端仍据
+  `localStorage.user` 判定已登录**导致的「登出不彻底」。（New API/One API 无状态 session：登录态编码在
+  session cookie，删 cookie 即失效，故等价于点页面「退出」。）
+- **GitHub 重登直连链路**：NewAPI 的 `client_id` 直连快捷路径由「仅 linux.do」泛化为 **provider 驱动**
+  （[oauth-providers.ts](src/domain/oauth-providers.ts) 新增 `clientIdStatusKey`/`stateUrl`/`buildAuthorizeUrl`）。
+  GitHub 走：`/api/status` 取 `github_client_id` → `GET /api/oauth/state?mode=login` 取 state →
+  跳 `github.com/login/oauth/authorize` → 回调 `/api/oauth/{provider}?code=&state=`（**转发完整 query，含
+  state**，修复仅传 code 换取失败）。缺 client_id 时回退站点登录页点击。补充 OAuth 分步诊断日志。
+- **NewAPI 个人资料签到（新预设 + bearer-sniff 认证）**：新增预设 **`newapi-profile`**（入口 `/profile`、
+  `api` 签到 `POST /api/user/checkin`）与认证策略 **`bearer-sniff`**——用 `chrome.webRequest` 观察页面自身
+  发往 `/api/*` 的请求，捕获其认证头（`Authorization: Bearer` 或 `New-Api-User`），**兼容 New API rc.23
+  （access token 仅在内存）/ rc.21（session cookie）两种模型**，并在标签页内执行签到以带上 Cloudflare
+  `cf_clearance`。token 短时有效（约 15 分钟）→ 与 force-relogin 一样**不吃 7 天缓存**。
+  见 [capture-headers.ts](src/services/capture-headers.ts) / [bearer-sniff.ts](src/strategies/auth/bearer-sniff.ts)。
+- **自动关闭公告/通知弹窗**：[run-page-checkin.ts](src/page/run-page-checkin.ts) 的 `closeOrdinaryDialogs`
+  显式点击 Semi/AntD 弹窗关闭 X（`.semi-modal-close` 等）并识别「关闭公告/今日关闭」；
+  [click-login.ts](src/page/click-login.ts) 在点登录按钮前先关公告弹窗——**仅限公告/通知类**，
+  跳过含登录/授权/人机验证文案的弹窗，绝不误关登录框。
+
 ## v1.0.5
 
 **每个站点可从「更多操作」手动重新签到**

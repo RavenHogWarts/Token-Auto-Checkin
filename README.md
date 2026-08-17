@@ -38,7 +38,7 @@ pnpm lint           # ESLint
 
 每个站点是一份 `SiteProfile`，签到方式由两个维度组合而成（见 [dev/02-方案设计.md](./dev/02-方案设计.md)）：
 
-- **认证策略** `auth.strategy`：`cookie` / `session-reuse` / `oauth-linuxdo` / `token-storage` / `force-relogin`
+- **认证策略** `auth.strategy`：`cookie` / `session-reuse` / `oauth-linuxdo` / `token-storage` / `bearer-sniff` / `force-relogin`
 - **签到策略** `checkin.strategy`：`api` / `visit` / `page-click` / `manual-assist`
 
 三类典型场景的落点：
@@ -47,6 +47,7 @@ pnpm lint           # ESLint
 | --- | --- |
 | 打开网站（cookie）即签 | `auth: cookie` + `checkin: visit` |
 | 需退出重新登录 | `auth: force-relogin` + `checkin: api \| page-click` |
+| 个人资料页签到（新版 NewAPI，token 只在内存） | 预设 `newapi-profile`（`auth: bearer-sniff` + `checkin: api`） |
 | 需手动点击签到位置 | `checkin: page-click`（`click.selectors` 自定义选择器）或 `manual-assist`（前台交人工） |
 
 ## 目录结构

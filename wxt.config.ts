@@ -9,7 +9,7 @@ export default defineConfig({
   manifest: {
     name: '公益站自动签到助手',
     description: '支持 NewAPI / Sub2API / ZenAPI 及自定义站点的公益站自动签到工具',
-    version: '1.0.5',
+    version: '1.0.6',
     permissions: ['cookies', 'storage', 'alarms', 'scripting', 'tabs', 'windows', 'webRequest'],
     host_permissions: ['https://*/*'],
     action: {

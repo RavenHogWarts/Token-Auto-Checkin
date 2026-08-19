@@ -8,6 +8,26 @@
 
 ---
 
+## v1.0.7
+
+**新增「仅记录」站点类型（不参与自动签到）**
+
+- 新增签到策略 **`record-only`** 与同名预设：站点条目保留在列表中便于统一查看，但**不参与**
+  批量/定时签到——不打开标签页、不走认证、不发请求、不计入 badge。
+  - [presets.ts](src/domain/presets.ts) `PRESET_DEFAULTS['record-only']`（`auth: cookie` 占位、
+    `checkin: record-only`，不派生接口配置）。
+  - [orchestrator.ts](src/core/orchestrator.ts) `executeAll` 过滤 `record-only` 站点，不纳入总数与
+    2 秒间隔；日志按 `info` 级记录。
+  - [pipeline.ts](src/core/pipeline.ts) `runSiteCheckin` 在认证阶段前短路，直接返回 `recorded`
+    （单站手动重试亦走此路径，不开 tab）。
+- 新增签到状态 **`recorded`**（[checkin-result.ts](src/domain/checkin-result.ts) `CheckinStatus`）。
+- 弹窗 UI：预设下拉新增「仅记录」、签到策略下拉新增 `record-only` 选项
+  （[profile-editor.ts](src/entrypoints/popup/profile-editor.ts)）；站点行展示虚线边「仅记录」标签与
+  静态「仅记录」状态胶囊（不可重试）（[main.ts](src/entrypoints/popup/main.ts) +
+  [style.css](src/entrypoints/popup/style.css) `.site-tag.record-only` / `.site-status.recorded`）。
+- 测试：[domain.test.ts](src/test/domain.test.ts) 新增 `record-only` 预设用例。
+- 文档：[README.md](README.md)、[dev/02-方案设计.md](dev/02-方案设计.md) 同步策略/预设表。
+
 ## v1.0.6
 
 **彻底登出重登 · GitHub 直连登录 · NewAPI 个人资料签到 · 自动关公告弹窗**

@@ -1,7 +1,7 @@
 {
   "name": "token-auto-checkin",
   "displayName": "公益站自动签到助手",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "支持 NewAPI / Sub2API / ZenAPI 及自定义站点的公益站自动签到工具（声明式站点策略）",
   "private": true,
   "type": "module",

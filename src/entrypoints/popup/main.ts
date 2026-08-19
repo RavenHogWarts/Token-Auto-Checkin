@@ -40,6 +40,7 @@ const PRESET_LABELS: Record<SitePreset, string> = {
   sub2api: 'Sub2API',
   zenapi: 'ZenAPI',
   custom: '自定义',
+  'record-only': '仅记录',
 };
 
 // ---- 模块状态 --------------------------------------------------------------
@@ -78,6 +79,8 @@ function statusView(status: CheckinStatus | undefined): { className: string; tex
       return { className: 'invalid', text: '失效' };
     case 'needs-human':
       return { className: 'needs-human', text: '待人工' };
+    case 'recorded':
+      return { className: 'recorded', text: '仅记录' };
     case 'failed':
       return { className: 'failed', text: '失败' };
     default:
@@ -199,10 +202,24 @@ function buildSiteItem(profile: SiteProfile): HTMLElement {
 
   // 预设/策略标签
   const tag = document.createElement('span');
-  const isVisit = profile.checkin.strategy === 'visit';
-  tag.className = isVisit ? 'site-tag visit' : 'site-tag';
-  tag.textContent = isVisit ? '仅访问' : PRESET_LABELS[profile.preset];
-  tag.title = isVisit ? '仅访问站点（打开页面视为完成）' : `站点类型：${PRESET_LABELS[profile.preset]}`;
+  const strategy = profile.checkin.strategy;
+  const isVisit = strategy === 'visit';
+  const isRecordOnly = strategy === 'record-only';
+  tag.className = isRecordOnly
+    ? 'site-tag record-only'
+    : isVisit
+      ? 'site-tag visit'
+      : 'site-tag';
+  tag.textContent = isRecordOnly
+    ? '仅记录'
+    : isVisit
+      ? '仅访问'
+      : PRESET_LABELS[profile.preset];
+  tag.title = isRecordOnly
+    ? '仅记录站点，不参与自动签到'
+    : isVisit
+      ? '仅访问站点（打开页面视为完成）'
+      : `站点类型：${PRESET_LABELS[profile.preset]}`;
 
   // 站点名（点击打开签到页）
   const name = document.createElement('button');
@@ -239,10 +256,18 @@ function buildSiteItem(profile: SiteProfile): HTMLElement {
 
   // 状态胶囊（失败 / 失效 / 无结果可点击重试）
   const view = statusView(result?.status);
-  const canRetry = enabled && canRetryStatus(result?.status);
+  const canRetry = enabled && !isRecordOnly && canRetryStatus(result?.status);
   const status = document.createElement(canRetry ? 'button' : 'span');
-  status.className = `site-status ${result ? view.className : 'pending'}`;
-  status.textContent = result ? view.text : enabled ? '待签' : '禁用';
+  status.className = `site-status ${
+    isRecordOnly ? 'recorded' : result ? view.className : 'pending'
+  }`;
+  status.textContent = isRecordOnly
+    ? '仅记录'
+    : result
+      ? view.text
+      : enabled
+        ? '待签'
+        : '禁用';
   if (canRetry) {
     (status as HTMLButtonElement).type = 'button';
     status.classList.add('retryable');

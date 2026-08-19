@@ -332,6 +332,7 @@ body {
 .site-status.checking { background: var(--warning-bg); color: var(--warning-text); }
 .site-status.pending { background: var(--warning-bg); color: var(--warning-text); }
 .site-status.needs-human { background: var(--warning-bg); color: var(--warning-text); }
+.site-status.recorded { background: var(--neutral-bg); color: var(--neutral-text); }
 .site-balance {
   padding: 3px 8px;
   border-radius: 10px;
@@ -356,6 +357,11 @@ body {
   line-height: 1.2;
 }
 .site-tag.visit { background: var(--visit-bg); color: var(--visit-text); }
+.site-tag.record-only {
+  background: transparent;
+  color: var(--neutral-text);
+  border: 1px dashed var(--neutral-text);
+}
 .site-cta {
   padding: 3px 8px;
   border: none;

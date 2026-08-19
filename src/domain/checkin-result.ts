@@ -10,7 +10,8 @@ export type CheckinStatus =
   | 'checking'
   | 'failed'
   | 'invalid'
-  | 'needs-human';
+  | 'needs-human'
+  | 'recorded'; // 仅记录站点，不参与自动签到
 
 export interface CheckinResult {
   status: CheckinStatus;

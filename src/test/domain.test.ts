@@ -20,6 +20,13 @@ describe('presets / buildSiteProfile', () => {
     expect(p.checkin.strategy).toBe('visit');
   });
 
+  it('record-only 预设不派生接口配置', () => {
+    const p = buildSiteProfile({ domain: 'd.com', preset: 'record-only' });
+    expect(p.auth.strategy).toBe('cookie');
+    expect(p.checkin.strategy).toBe('record-only');
+    expect(p.checkin.api).toBeUndefined();
+  });
+
   it('forceReloginEveryRun 语义糖切换策略', () => {
     const p = buildSiteProfile({ domain: 'c.com', preset: 'newapi', auth: { forceReloginEveryRun: true } });
     expect(p.auth.strategy).toBe('force-relogin');

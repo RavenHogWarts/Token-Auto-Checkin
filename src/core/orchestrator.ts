@@ -53,13 +53,14 @@ const STATUS_TEXT: Record<string, string> = {
   failed: '失败',
   invalid: '失效',
   'needs-human': '待人工',
+  recorded: '仅记录',
 };
 
 function logResult(name: string, r: CheckinResult): Promise<void> {
   const level: LogLevel =
     r.status === 'success'
       ? 'success'
-      : r.status === 'already'
+      : r.status === 'already' || r.status === 'recorded'
         ? 'info'
         : r.status === 'needs-human'
           ? 'warn'
@@ -116,7 +117,9 @@ async function executeAll(
   source: CheckinRunState['source'],
   cancelToken: CancelToken,
 ): Promise<CheckinResults> {
-  const profiles = (await loadProfiles()).filter((p) => p.enabled);
+  const profiles = (await loadProfiles()).filter(
+    (p) => p.enabled && p.checkin.strategy !== 'record-only',
+  );
   const total = profiles.length;
   let current = 0;
   const results: CheckinResults = {};

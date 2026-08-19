@@ -21,10 +21,17 @@ export type CheckinStrategy =
   | 'api' // 用认证头向签到接口发请求
   | 'visit' // 仅带 cookie 打开页面，读余额视为成功（场景 A）
   | 'page-click' // 打开页面，按选择器/文案查找并点击签到按钮（场景 C）
-  | 'manual-assist'; // 前置页面交用户手动完成（场景 C 人工兜底）
+  | 'manual-assist' // 前置页面交用户手动完成（场景 C 人工兜底）
+  | 'record-only'; // 仅记录站点，不参与自动签到（无 tab、无认证、无请求）
 
 /** 站点预设：仅用于填充默认策略与接口路径 */
-export type SitePreset = 'newapi' | 'newapi-profile' | 'sub2api' | 'zenapi' | 'custom';
+export type SitePreset =
+  | 'newapi'
+  | 'newapi-profile'
+  | 'sub2api'
+  | 'zenapi'
+  | 'custom'
+  | 'record-only';
 
 /** OAuth 登录提供方（重新登录时点击哪个第三方登录入口） */
 export type OAuthProvider = 'linuxdo' | 'github';

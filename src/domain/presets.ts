@@ -67,6 +67,12 @@ export const PRESET_DEFAULTS: Record<SitePreset, PresetDefaults> = {
     checkin: 'visit',
     pagePath: '/',
   },
+  'record-only': {
+    // 仅记录：保留站点条目便于统一查看，但不参与自动签到（无认证、无 tab、无请求）。
+    auth: 'cookie',
+    checkin: 'record-only',
+    pagePath: '/',
+  },
 };
 
 export interface BuildProfileInput {

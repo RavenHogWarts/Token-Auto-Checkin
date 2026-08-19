@@ -13,6 +13,16 @@ export async function runSiteCheckin(
   ctx: RunContext,
 ): Promise<CheckinResult> {
   try {
+    // 仅记录站点：不参与签到，直接返回 recorded，不开 tab、不走认证。
+    if (profile.checkin.strategy === 'record-only') {
+      ctx.logger.log('仅记录站点，跳过签到');
+      return {
+        status: 'recorded',
+        message: '仅记录，不参与自动签到',
+        strategyUsed: { auth: profile.auth.strategy, checkin: 'record-only' },
+      };
+    }
+
     ctx.logger.log(`认证阶段开始，策略=${profile.auth.strategy}`);
     const auth = await resolveAuth(profile, ctx);
     if (auth?.securityCheck) {

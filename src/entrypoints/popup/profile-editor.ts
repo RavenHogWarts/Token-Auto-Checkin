@@ -29,6 +29,7 @@ const CHECKIN_OPTIONS: { value: CheckinStrategy; label: string }[] = [
   { value: 'visit', label: 'visit · 仅打开页面（cookie 自动签）' },
   { value: 'page-click', label: 'page-click · 页面查找并点击按钮' },
   { value: 'manual-assist', label: 'manual-assist · 前台交我手动完成' },
+  { value: 'record-only', label: 'record-only · 仅记录，不参与自动签到' },
 ];
 
 const PRESET_OPTIONS: { value: SitePreset; label: string }[] = [
@@ -37,6 +38,7 @@ const PRESET_OPTIONS: { value: SitePreset; label: string }[] = [
   { value: 'sub2api', label: 'Sub2API' },
   { value: 'zenapi', label: 'ZenAPI' },
   { value: 'custom', label: '自定义' },
+  { value: 'record-only', label: '仅记录' },
 ];
 
 const PROVIDER_OPTIONS: { value: OAuthProvider; label: string }[] = (
